@@ -41,12 +41,13 @@ class ProductController extends Controller
         $products = $query->paginate($limit)->appends($request->all());
 
         return response()->json([
+            'status' => 200,
             'success' => true,
             'page' => $products->currentPage(),
             'limit' => $products->perPage(),
             'totalProducts' => $products->total(),
             'products' => $products->items()
-        ]);
+        ], 200);
     }
 
     public function store(Request $request)
@@ -69,9 +70,11 @@ class ProductController extends Controller
         $product = Product::create($validator->validated());
 
         return response()->json([
+            'status'  => 201, 
             'success' => true,
+            'message' => 'Product created successfully',
             'product' => $product
-        ], 201);
-    }
+        ], 201); 
 
+    }
 }

@@ -18,9 +18,11 @@ class CategoryController extends Controller
         $categories = Category::all(['id', 'name', 'image']);
 
         return response()->json([
+            'status' => 200,
             'success' => true,
+            'message' => 'Categories retrieved successfully',
             'categories' => $categories
-        ]);
+        ], 200);
     }
 
     /**
@@ -54,6 +56,7 @@ class CategoryController extends Controller
         ]);
 
         return response()->json([
+            'status'  => 201,
             'success'  => true,
             'message'  => 'Category created successfully',
             'category' => $category
