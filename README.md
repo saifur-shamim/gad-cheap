@@ -8,6 +8,8 @@ MySQL or any supported database
 
 Laravel 10+
 
+---
+
 Installation
 
 Clone the repository
