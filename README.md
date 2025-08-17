@@ -10,7 +10,7 @@ Laravel 10+
 
 ---
 
-Installation
+### Installation
 
 Clone the repository
 
@@ -38,21 +38,20 @@ cp .env.example .env
 Set up environment variables
 Edit .env to set your database and app settings:
 
+```env
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
 DB_PORT=3306
 DB_DATABASE=your_database
 DB_USERNAME=root
 DB_PASSWORD=secret
-
+```
 
 Generate application key
 
 ```bash
 php artisan key:generate
 ````
-
-
 
 Run migrations
 
@@ -67,12 +66,8 @@ Run the development server
 php artisan serve
 ````
 
-
-
-
-
-
 Server will run at: http://127.0.0.1:8000
+
 
 API Endpoints
 Register
