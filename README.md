@@ -67,7 +67,7 @@ php artisan serve
 ````
 API Endpoints
 Register
-POST /api/register
+POST:  /api/register
 
 
 Request Body:
@@ -81,7 +81,7 @@ Request Body:
 }
 
 Login
-POST /api/login
+POST:  /api/login
 
 
 Request Body:
@@ -92,21 +92,11 @@ Request Body:
 }
 
 
-Response:
 
-{
-  "status": 200,
-  "message": "Logged in successfully",
-  "user": { ... },
-  "token": "your_api_token",
-  "token_type": "Bearer"
-}
 
 Logout
-POST /api/logout
+POST:  /api/logout
 
 
-Header:
 
-Authorization: Bearer {token}
 
