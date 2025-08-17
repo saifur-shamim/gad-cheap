@@ -66,9 +66,9 @@ Run the development server
 php artisan serve
 ````
 API Endpoints
+
 Register
 POST:  /api/register
-
 
 Request Body:
 
@@ -92,11 +92,13 @@ Request Body:
 }
 
 
-
-
 Logout
 POST:  /api/logout
 
+Categories
+GET: /api/categories
 
+Products: 
+GET: /api/products
 
 
