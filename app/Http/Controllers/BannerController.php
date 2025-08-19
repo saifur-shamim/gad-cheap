@@ -6,22 +6,20 @@ use App\Http\Controllers\Controller;
 use App\Models\Banner;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use App\Services\BannerService;
 
 class BannerController extends Controller
 {
-    /**
-     * GET /api/banners  (optional)
-     */
+    protected $bannerService;
+
+    public function __construct(BannerService $bannerService)
+    {
+        $this->bannerService = $bannerService;
+    }
+
     public function index()
     {
-        $banners = Banner::where('status', true)
-            ->get(['id', 'title', 'image', 'link', 'status']);
-
-        // Optionally add full URL
-        $banners->transform(function ($banner) {
-            $banner->image_url = $banner->image ? url($banner->image) : null;
-            return $banner;
-        });
+        $banners = $this->bannerService->getBanners();
 
         return response()->json([
             'status'   => 200,
