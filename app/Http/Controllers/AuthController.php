@@ -3,11 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Point;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
-use Log;
 
 class AuthController extends Controller
 {
@@ -16,11 +17,12 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'first_name' => 'required|string|max:255',
-            'last_name'  => 'required|string|max:255',
-            'email'      => 'required|string|email|max:255|unique:users,email',
-            'phone'      => 'required|string|max:20|unique:users,phone',
-            'password'   => 'required|string|min:8',
+            'first_name'     => 'required|string|max:255',
+            'last_name'      => 'required|string|max:255',
+            'email'          => 'required|string|email|max:255|unique:users,email',
+            'phone'          => 'required|string|max:20|unique:users,phone',
+            'password'       => 'required|string|min:8',
+            'referral_code'  => 'nullable|string|exists:users,referral_code', // ✅ validate referral if provided
         ]);
 
         if ($validator->fails()) {
@@ -30,13 +32,37 @@ class AuthController extends Controller
             ], 400);
         }
 
-        $user = new User();
-        $user->first_name = $request->first_name;
-        $user->last_name  = $request->last_name;
-        $user->email      = $request->email;
-        $user->phone      = $request->phone;
-        $user->password   = Hash::make($request->password);
-        $user->save();
+        // Find referrer if referral_code is provided
+        $referrer = null;
+        if ($request->referral_code) {
+            $referrer = User::where('referral_code', $request->referral_code)->first();
+        }
+
+        // Create new user
+        $user = User::create([
+            'first_name'    => $request->first_name,
+            'last_name'     => $request->last_name,
+            'email'         => $request->email,
+            'phone'         => $request->phone,
+            'password'      => Hash::make($request->password),
+            'referral_code' => Str::upper(Str::random(6)),
+            'referred_by'   => $referrer?->id,
+        ]);
+
+        // Award referral points
+        if ($referrer) {
+            Point::create([
+                'user_id' => $user->id,
+                'points'  => 50,
+                'source'  => 'referral',
+            ]);
+
+            Point::create([
+                'user_id' => $referrer->id,
+                'points'  => 50,
+                'source'  => 'referral_bonus',
+            ]);
+        }
 
         return response()->json([
             'status'  => 201,

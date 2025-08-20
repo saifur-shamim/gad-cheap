@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Banner;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Storage;
 use App\Services\BannerService;
 
 class BannerController extends Controller
@@ -29,18 +30,13 @@ class BannerController extends Controller
         ], 200);
     }
 
-    /**
-     * POST /api/banners
-     * Body: multipart/form-data (title, link?, status?, image)
-     */
     public function store(Request $request)
     {
-        // 1) Validate input
         $validator = Validator::make($request->all(), [
             'title'  => 'nullable|string|max:255',
             'link'   => 'nullable|url|max:2048',
             'status' => 'nullable|boolean',
-            'image'  => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:3072', // 3MB
+            'image'  => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:3072',
         ]);
 
         if ($validator->fails()) {
@@ -51,21 +47,14 @@ class BannerController extends Controller
             ], 400);
         }
 
-        // 2) Handle file upload to public/uploads/banners
-        $path = null;
-        if ($request->hasFile('image')) {
-            $file      = $request->file('image');
-            $filename  = time() . '_' . preg_replace('/\s+/', '_', $file->getClientOriginalName());
-            $file->move(public_path('uploads/banners'), $filename);
-            $path = 'uploads/banners/' . $filename; // store relative path in DB
-        }
+        
+        $path = $request->file('image')->store('banners', 'public');
 
-        // 3) Create banner
         $banner = Banner::create([
             'title'  => $request->input('title'),
             'link'   => $request->input('link'),
             'status' => $request->boolean('status', true),
-            'image'  => $path,
+            'image'  => $path, 
         ]);
 
         return response()->json([
@@ -78,7 +67,6 @@ class BannerController extends Controller
 
     public function update(Request $request, $id)
     {
-        // 1) Find banner
         $banner = Banner::find($id);
         if (!$banner) {
             return response()->json([
@@ -88,7 +76,6 @@ class BannerController extends Controller
             ], 404);
         }
 
-        // 2) Validate input
         $validator = Validator::make($request->all(), [
             'title'  => 'nullable|string|max:255',
             'link'   => 'nullable|url|max:2048',
@@ -104,20 +91,16 @@ class BannerController extends Controller
             ], 400);
         }
 
-        // 3) Handle file upload (if new image uploaded)
+        
         if ($request->hasFile('image')) {
-            // delete old image if exists
-            if ($banner->image && file_exists(public_path($banner->image))) {
-                unlink(public_path($banner->image));
+            if ($banner->image && Storage::disk('public')->exists($banner->image)) {
+                Storage::disk('public')->delete($banner->image);
             }
 
-            $file     = $request->file('image');
-            $filename = time() . '_' . preg_replace('/\s+/', '_', $file->getClientOriginalName());
-            $file->move(public_path('uploads/banners'), $filename);
-            $banner->image = 'uploads/banners/' . $filename;
+            $path = $request->file('image')->store('banners', 'public');
+            $banner->image = $path;
         }
 
-        // 4) Update fields
         $banner->title  = $request->input('title', $banner->title);
         $banner->link   = $request->input('link', $banner->link);
         $banner->status = $request->has('status') ? $request->boolean('status') : $banner->status;
@@ -130,5 +113,4 @@ class BannerController extends Controller
             'banner'  => $banner,
         ], 200);
     }
-    
 }

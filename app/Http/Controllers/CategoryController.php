@@ -3,63 +3,48 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\Category;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Validator;
+use Illuminate\Http\Request;
 
 class CategoryController extends Controller
 {
-    /**
-     * Get all categories
-     */
     public function index()
     {
-        $categories = Category::all(['id', 'name', 'image']);
-
-        return response()->json([
-            'status' => 200,
-            'success' => true,
-            'message' => 'Categories retrieved successfully',
-            'categories' => $categories
-        ], 200);
+        return response()->json(Category::with('parent')->get());
     }
 
-    /**
-     * Create a new category
-     */
     public function store(Request $request)
     {
-
-        $validator = Validator::make($request->all(), [
-            'name'  => 'required|string|max:255|unique:categories,name',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        $validated = $request->validate([
+            'name'      => 'required|string|max:255',
+            'parent_id' => 'nullable|exists:categories,id'
         ]);
 
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => 400,
-                'errors' => $validator->errors(),
-            ], 400);
-        }
+        $category = Category::create($validated);
 
+        return response()->json($category, 201);
+    }
 
-        $imagePath = null;
-        if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')->store('categories', 'public');
-        }
+    public function show(Category $category)
+    {
+        return response()->json($category->load('parent'));
+    }
 
-
-        $category = Category::create([
-            'name'  => $request->name,
-            'image' => $imagePath ? '/storage/' . $imagePath : null,
+    public function update(Request $request, Category $category)
+    {
+        $validated = $request->validate([
+            'name'      => 'required|string|max:255',
+            'parent_id' => 'nullable|exists:categories,id'
         ]);
 
-        return response()->json([
-            'status'  => 201,
-            'success'  => true,
-            'message'  => 'Category created successfully',
-            'category' => $category
-        ], 201);
+        $category->update($validated);
+
+        return response()->json($category);
+    }
+
+    public function destroy(Category $category)
+    {
+        $category->delete();
+        return response()->json(null, 204);
     }
 }

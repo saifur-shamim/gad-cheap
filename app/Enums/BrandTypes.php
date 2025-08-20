@@ -6,6 +6,6 @@ enum BrandTypes: string
 {
     case ALL = 'all';
     case PRODUCTS ='products'; 
-    case BRANDS = 'Brands'; 
+    case BRANDS = 'brands'; 
     case CATEGORIES = 'categories';
 }

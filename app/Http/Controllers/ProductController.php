@@ -3,78 +3,54 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\Product;
-use Illuminate\Support\Facades\Validator;
+use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
-    public function index(Request $request)
+    public function index()
     {
-        $query = Product::with('category');
-
-        if ($request->has('category')) {
-            $query->whereHas('category', function ($q) use ($request) {
-                $q->where('name', $request->category);
-            });
-        }
-
-        if ($request->has('sort')) {
-            switch ($request->sort) {
-                case 'new':
-                    $query->orderBy('created_at', 'desc');
-                    break;
-                case 'price_low':
-                    $query->orderBy('retails_price', 'asc');
-                    break;
-                case 'price_high':
-                    $query->orderBy('retails_price', 'desc');
-                    break;
-                default:
-                    $query->orderBy('id', 'desc');
-            }
-        } else {
-            $query->orderBy('id', 'desc');
-        }
-
-        $limit = $request->get('limit', 20);
-        $products = $query->paginate($limit)->appends($request->all());
-
-        return response()->json([
-            'status' => 200,
-            'success' => true,
-            'page' => $products->currentPage(),
-            'limit' => $products->perPage(),
-            'totalProducts' => $products->total(),
-            'products' => $products->items()
-        ], 200);
+        return response()->json(
+            Product::with(['category', 'brand'])->get()
+        );
     }
 
     public function store(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'name'           => 'required|string|unique:products,name',
-            'category_id'    => 'nullable|exists:categories,id',
-            'retails_price'  => 'nullable|numeric',
-            'purchase_price' => 'nullable|numeric',
-            'description'    => 'nullable|string',
+        $validated = $request->validate([
+            'name'        => 'required|string|max:255',
+            'category_id' => 'required|exists:categories,id',
+            'brand_id'    => 'nullable|exists:brands,id',
+            'retails_price' => 'nullable|numeric',
         ]);
 
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => 400,
-                'errors' => $validator->errors(),
-            ], 400);
-        }
+        $product = Product::create($validated);
 
-        $product = Product::create($validator->validated());
+        return response()->json($product, 201);
+    }
 
-        return response()->json([
-            'status'  => 201, 
-            'success' => true,
-            'message' => 'Product created successfully',
-            'product' => $product
-        ], 201); 
+    public function show(Product $product)
+    {
+        return response()->json($product->load(['category', 'brand']));
+    }
 
+    public function update(Request $request, Product $product)
+    {
+        $validated = $request->validate([
+            'name'        => 'sometimes|string|max:255',
+            'category_id' => 'sometimes|exists:categories,id',
+            'brand_id'    => 'sometimes|exists:brands,id',
+            'retails_price' => 'nullable|numeric',
+        ]);
+
+        $product->update($validated);
+
+        return response()->json($product);
+    }
+
+    public function destroy(Product $product)
+    {
+        $product->delete();
+        return response()->json(null, 204);
     }
 }

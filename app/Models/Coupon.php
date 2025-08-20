@@ -4,13 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Brand extends Model
+class Coupon extends Model
 {
    protected $guarded = BaseModel::COMMON_GUARDED_FIELDS_SIMPLE;
 
-   // A brand has many products
-   public function products()
+   // 🔗 Coupon belongs to a user
+   public function user()
    {
-      return $this->hasMany(Product::class);
+      return $this->belongsTo(User::class);
    }
 }

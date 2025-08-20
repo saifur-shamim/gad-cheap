@@ -7,7 +7,7 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\BannerController;
 use App\Http\Controllers\SliderController;
 use App\Http\Controllers\SearchController;
-
+use App\Http\Controllers\CouponController;
 
 
 
@@ -17,12 +17,9 @@ Route::post('/login',    [AuthController::class, 'login']);
 Route::get('/products', [ProductController::class, 'index']);
 Route::post('/products', [ProductController::class, 'store']);
 
-Route::get('/categories', [CategoryController::class, 'index']);
-Route::post('/categories', [CategoryController::class, 'store']);
+Route::apiResource('categories', CategoryController::class);
+Route::apiResource('banners', BannerController::class);
 
-Route::get('/banners', [BannerController::class, 'index']);
-Route::post('/banners', [BannerController::class, 'store']);
-Route::put('/banners/{id}', [BannerController::class, 'update']);
 
 Route::get('/sliders', [SliderController::class, 'index']);
 Route::post('/sliders', [SliderController::class, 'store']);
@@ -32,4 +29,6 @@ Route::get('/search', [SearchController::class, 'search']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
+    Route::get('/coupons', [CouponController::class, 'index']);
+    Route::post('/coupons/redeem', [CouponController::class, 'redeem']);
 });

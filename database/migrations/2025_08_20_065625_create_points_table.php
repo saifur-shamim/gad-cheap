@@ -11,12 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('banners', function (Blueprint $table) {
+        Schema::create('points', function (Blueprint $table) {
             $table->id();
-            $table->string('title')->nullable();
-            $table->string('image'); // store image path
-            $table->string('link')->nullable(); // optional redirect link
-            $table->boolean('status')->default(true); // active/inactive
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->integer('points')->default(0);
             $table->timestamps();
         });
     }
@@ -26,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('banners');
+        Schema::dropIfExists('points');
     }
 };
